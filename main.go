@@ -1,7 +1,7 @@
 package main
 
-import "github.com/sikoba-tm/api/cmd"
+import app "github.com/sikoba-tm/api/cmd"
 
 func main() {
-	cmd.Run()
+	app.Run()
 }
