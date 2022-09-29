@@ -1,7 +1,11 @@
 package main
 
-import app "github.com/sikoba-tm/api/cmd"
+import (
+	"github.com/joho/godotenv"
+	app "github.com/sikoba-tm/api/cmd"
+)
 
 func main() {
+	godotenv.Load()
 	app.Run()
 }
