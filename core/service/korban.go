@@ -24,7 +24,7 @@ func NewKorbanService(repoKorban repository.KorbanRepository, repoPosko reposito
 func (s *korbanService) FindAll(ctx context.Context, id_bencana string) []domain.Korban {
 	allPosko := s.repoPosko.FindAllId(ctx, id_bencana)
 
-	var results []domain.Korban
+	var results = make([]domain.Korban, 0)
 	for _, e := range allPosko {
 		korbans := s.repoKorban.FindAllByPosko(ctx, e)
 		for _, k := range korbans {
@@ -44,7 +44,6 @@ func (s *korbanService) FindById(ctx context.Context, id_korban string) (*domain
 func (s *korbanService) Create(ctx context.Context, id_bencana string, id_posko string, korban domain.Korban) (*domain.Korban, error) {
 	posko, err := s.repoPosko.FindById(ctx, id_bencana, id_posko)
 	korban.Posko = *posko
-	// Gak ke-save
 	newKorban, err := s.repoKorban.Create(ctx, id_bencana, korban)
 
 	return newKorban, err
