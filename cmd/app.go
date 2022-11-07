@@ -10,7 +10,7 @@ import (
 )
 
 func Run() {
-	db := repository.Init(os.Getenv("POSTGRES_URL"))
+	db := repository.InitConnection(os.Getenv("POSTGRES_URL"))
 
 	port := getPort()
 	app := fiber.New()
@@ -19,11 +19,30 @@ func Run() {
 	bencanaService := service.NewBencanaService(bencanaRepository)
 	bencanaHandler := handler.NewBencanaHandler(bencanaService)
 
+	poskoRepository := repository.NewPoskoRepository(db)
+	poskoService := service.NewPoskoService(poskoRepository)
+	poskoHandler := handler.NewPoskoHandler(poskoService)
+
+	//korbanRepository := repository.NewKorbanRepository(db)
+	//korbanService := service.NewKorbanService(korbanRepository)
+	//korbanHandler := handler.NewKorbanHandler(korbanService)
+
 	bencana := app.Group("/bencana")
 	bencana.Get("", bencanaHandler.GetAll)
 	bencana.Post("", bencanaHandler.Create)
-	bencana.Get("/:id", bencanaHandler.GetById)
-	bencana.Put("/:id", bencanaHandler.UpdateById)
+	bencana.Get("/:id_bencana", bencanaHandler.GetById)
+	bencana.Put("/:id_bencana", bencanaHandler.UpdateById)
+
+	// Posko
+	posko := app.Group("/bencana/:id_bencana/posko")
+	posko.Get("", poskoHandler.GetAll)
+	posko.Post("", poskoHandler.Create)
+	posko.Get("/:id_posko", poskoHandler.GetById)
+
+	//korban := app.Group("/bencana/:id_bencana/korban")
+	//korban.Get("", korbanHandler.GetAll)
+	//korban.Post("", korbanHandler.Create)
+	//korban.Get("/:id_korban", korbanHandler.GetById)
 
 	log.Fatal(app.Listen(port))
 

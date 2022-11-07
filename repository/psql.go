@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func Init(dbURL string) *gorm.DB {
+func InitConnection(dbURL string) *gorm.DB {
 	db, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 
 	if err != nil {

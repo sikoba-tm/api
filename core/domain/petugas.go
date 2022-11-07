@@ -6,6 +6,6 @@ type Petugas struct {
 	ID             uint `gorm:"primaryKey"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	username       string
+	Username       string
 	hashedPassword string
 }
