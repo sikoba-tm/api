@@ -8,7 +8,7 @@ type Bencana struct {
 	ID              uint `gorm:"primaryKey" json:"id"`
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
-	NamaBencana     string    `json:"nama_bencana"`
+	Nama            string    `json:"nama"`
 	Lokasi          string    `json:"lokasi"`
-	TanggalKejadian time.Time `json:"tanggal_bencana"`
+	TanggalKejadian time.Time `json:"tanggal_kejadian"`
 }

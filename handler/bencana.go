@@ -22,7 +22,7 @@ func (h *bencanaHandler) GetAll(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) GetById(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id := c.Params("id_bencana")
 	result, err := h.service.FindById(c.Context(), id)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(ObjectNotFound)
@@ -46,7 +46,7 @@ func (h *bencanaHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) UpdateById(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id := c.Params("id_bencana")
 
 	var bencana domain.Bencana
 	if err := c.BodyParser(&bencana); err != nil {

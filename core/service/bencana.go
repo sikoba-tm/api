@@ -43,7 +43,7 @@ func (s *bencanaService) Update(ctx context.Context, id string, bencana domain.B
 		return existingBencana, err
 	}
 
-	existingBencana.NamaBencana = bencana.NamaBencana
+	existingBencana.Nama = bencana.Nama
 	existingBencana.Lokasi = bencana.Lokasi
 	existingBencana.TanggalKejadian = bencana.TanggalKejadian
 
