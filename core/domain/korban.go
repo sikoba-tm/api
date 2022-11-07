@@ -25,6 +25,6 @@ type Korban struct {
 	TanggalLahir   time.Time `json:"tangal_lahir"`
 	NamaIbuKandung string    `json:"nama_ibu_kandung"`
 	Kondisi        string    `json:"kondisi"`
-	PoskoID        uint
+	PoskoID        uint      `json:"-"`
 	Posko          Posko
 }

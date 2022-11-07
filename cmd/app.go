@@ -23,9 +23,9 @@ func Run() {
 	poskoService := service.NewPoskoService(poskoRepository)
 	poskoHandler := handler.NewPoskoHandler(poskoService)
 
-	//korbanRepository := repository.NewKorbanRepository(db)
-	//korbanService := service.NewKorbanService(korbanRepository)
-	//korbanHandler := handler.NewKorbanHandler(korbanService)
+	korbanRepository := repository.NewKorbanRepository(db)
+	korbanService := service.NewKorbanService(korbanRepository, poskoRepository)
+	korbanHandler := handler.NewKorbanHandler(korbanService)
 
 	bencana := app.Group("/bencana")
 	bencana.Get("", bencanaHandler.GetAll)
@@ -33,16 +33,15 @@ func Run() {
 	bencana.Get("/:id_bencana", bencanaHandler.GetById)
 	bencana.Put("/:id_bencana", bencanaHandler.UpdateById)
 
-	// Posko
 	posko := app.Group("/bencana/:id_bencana/posko")
 	posko.Get("", poskoHandler.GetAll)
 	posko.Post("", poskoHandler.Create)
 	posko.Get("/:id_posko", poskoHandler.GetById)
+	posko.Post("/:id_posko", korbanHandler.Create)
 
-	//korban := app.Group("/bencana/:id_bencana/korban")
-	//korban.Get("", korbanHandler.GetAll)
-	//korban.Post("", korbanHandler.Create)
-	//korban.Get("/:id_korban", korbanHandler.GetById)
+	korban := app.Group("/bencana/:id_bencana/korban")
+	korban.Get("", korbanHandler.GetAll)
+	korban.Get("/:id_korban", korbanHandler.GetById)
 
 	log.Fatal(app.Listen(port))
 

@@ -10,6 +10,7 @@ import (
 type PoskoRepository interface {
 	FindAll(ctx context.Context, id_bencana string) []domain.Posko
 	FindById(ctx context.Context, id_bencana string, id_posko string) (*domain.Posko, error)
+	FindAllId(ctx context.Context, id_bencana string) []string
 	Create(ctx context.Context, id_bencana string, posko domain.Posko) (*domain.Posko, error)
 }
 
@@ -43,6 +44,13 @@ func (r *poskoRepository) FindById(ctx context.Context, id_bencana string, id_po
 	}
 
 	return &posko, nil
+}
+
+func (r *poskoRepository) FindAllId(ctx context.Context, id_bencana string) []string {
+	var poskoIds []string
+	r.db.Model(&domain.Posko{}).Where("bencana_id = ?", id_bencana).Pluck("id", &poskoIds)
+
+	return poskoIds
 }
 
 func (r *poskoRepository) Create(ctx context.Context, id_bencana string, posko domain.Posko) (*domain.Posko, error) {
