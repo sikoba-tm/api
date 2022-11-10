@@ -11,6 +11,7 @@ type BencanaService interface {
 	FindById(ctx context.Context, id string) (*domain.Bencana, error)
 	Create(ctx context.Context, bencana domain.Bencana) (*domain.Bencana, error)
 	Update(ctx context.Context, id string, bencana domain.Bencana) (*domain.Bencana, error)
+	Delete(ctx context.Context, id_bencana string) error
 }
 type bencanaService struct {
 	repo repository.BencanaRepository
@@ -50,4 +51,15 @@ func (s *bencanaService) Update(ctx context.Context, id string, bencana domain.B
 	newBencana, err := s.repo.Update(ctx, *existingBencana)
 
 	return newBencana, err
+}
+
+func (s *bencanaService) Delete(ctx context.Context, id_bencana string) error {
+	_, err := s.repo.FindById(ctx, id_bencana)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.Delete(ctx, id_bencana)
+
+	return err
 }

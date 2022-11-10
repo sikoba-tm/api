@@ -8,11 +8,12 @@ import (
 )
 
 type KorbanRepository interface {
-	FindAllByPosko(ctx context.Context, id_posko string) []domain.Korban
+	FindAllByPosko(ctx context.Context, idPosko string) []domain.Korban
 	//FindByKondisi(ctx context.Context, kondisi string) []domain.Korban
-	FindById(ctx context.Context, id_korban string) (*domain.Korban, error)
-	Create(ctx context.Context, id_bencana string, korban domain.Korban) (*domain.Korban, error)
-	//Update(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
+	FindById(ctx context.Context, idKorban string) (*domain.Korban, error)
+	Create(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
+	Update(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
+	Delete(ctx context.Context, idKorban string) error
 }
 
 type korbanRepository struct {
@@ -23,18 +24,18 @@ func NewKorbanRepository(db *gorm.DB) *korbanRepository {
 	return &korbanRepository{db: db}
 }
 
-func (r *korbanRepository) FindAllByPosko(ctx context.Context, id_posko string) []domain.Korban {
+func (r *korbanRepository) FindAllByPosko(ctx context.Context, idPosko string) []domain.Korban {
 	var korbanSlice []domain.Korban
 
-	r.db.WithContext(ctx).Where("posko_id = ?", id_posko).Find(&korbanSlice)
+	r.db.WithContext(ctx).Where("posko_id = ?", idPosko).Find(&korbanSlice)
 
 	return korbanSlice
 }
 
-func (r *korbanRepository) FindById(ctx context.Context, id_korban string) (*domain.Korban, error) {
+func (r *korbanRepository) FindById(ctx context.Context, idKorban string) (*domain.Korban, error) {
 	var korban domain.Korban
 
-	result := r.db.WithContext(ctx).Joins("Posko").Find(&korban, id_korban)
+	result := r.db.WithContext(ctx).Joins("Posko").Find(&korban, idKorban)
 
 	if result.Error != nil {
 		return nil, fmt.Errorf("%v", result.Error)
@@ -55,9 +56,23 @@ func (r *korbanRepository) FindById(ctx context.Context, id_korban string) (*dom
 //	return korbanSlice
 //}
 
-func (r *korbanRepository) Create(ctx context.Context, id_bencana string, korban domain.Korban) (*domain.Korban, error) {
-	fmt.Println(korban)
+func (r *korbanRepository) Create(ctx context.Context, korban domain.Korban) (*domain.Korban, error) {
 	err := r.db.WithContext(ctx).Create(&korban).Error
 
 	return &korban, err
+}
+
+func (r *korbanRepository) Update(ctx context.Context, korban domain.Korban) (*domain.Korban, error) {
+	err := r.db.WithContext(ctx).Save(&korban).Error
+
+	return &korban, err
+}
+
+func (r *korbanRepository) Delete(ctx context.Context, idKorban string) error {
+	err := r.db.WithContext(ctx).Delete(domain.Korban{}, idKorban).Error
+	if err != nil {
+		return fmt.Errorf("%v", "Cannot delete (violates Foreign Key constraint)")
+	}
+
+	return err
 }

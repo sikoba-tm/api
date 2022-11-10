@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/sikoba-tm/api/core/domain"
 	"gorm.io/gorm"
 )
@@ -12,6 +13,7 @@ type BencanaRepository interface {
 	FindById(ctx context.Context, id string) (*domain.Bencana, error)
 	Create(ctx context.Context, bencana domain.Bencana) (*domain.Bencana, error)
 	Update(ctx context.Context, bencana domain.Bencana) (*domain.Bencana, error)
+	Delete(ctx context.Context, idBencana string) error
 }
 
 type bencanaRepository struct {
@@ -30,10 +32,10 @@ func (r *bencanaRepository) FindAll(ctx context.Context) []domain.Bencana {
 	return bencanaSlice
 }
 
-func (r *bencanaRepository) FindById(ctx context.Context, id string) (*domain.Bencana, error) {
+func (r *bencanaRepository) FindById(ctx context.Context, idBencana string) (*domain.Bencana, error) {
 	var bencana domain.Bencana
 
-	result := r.db.WithContext(ctx).Find(&bencana, id)
+	result := r.db.WithContext(ctx).Find(&bencana, idBencana)
 
 	if result.Error != nil {
 		return nil, fmt.Errorf("%v", result.Error)
@@ -53,7 +55,16 @@ func (r *bencanaRepository) Create(ctx context.Context, bencana domain.Bencana) 
 }
 
 func (r *bencanaRepository) Update(ctx context.Context, bencana domain.Bencana) (*domain.Bencana, error) {
-	err := r.db.Save(bencana).Error
+	err := r.db.WithContext(ctx).Save(bencana).Error
 
 	return &bencana, err
+}
+
+func (r *bencanaRepository) Delete(ctx context.Context, idBencana string) error {
+	err := r.db.WithContext(ctx).Delete(domain.Bencana{}, idBencana).Error
+	if err != nil {
+		return fmt.Errorf("%v", "Cannot delete (violates Foreign Key constraint)")
+	}
+
+	return err
 }

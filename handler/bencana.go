@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/sikoba-tm/api/core/domain"
 	"github.com/sikoba-tm/api/core/service"
-	"net/http"
 )
 
 type bencanaHandler struct {
@@ -22,8 +23,8 @@ func (h *bencanaHandler) GetAll(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) GetById(c *fiber.Ctx) error {
-	id := c.Params("id_bencana")
-	result, err := h.service.FindById(c.Context(), id)
+	idBencana := c.Params("id_bencana")
+	result, err := h.service.FindById(c.Context(), idBencana)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(ObjectNotFound)
 	}
@@ -46,17 +47,29 @@ func (h *bencanaHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) UpdateById(c *fiber.Ctx) error {
-	id := c.Params("id_bencana")
+	idBencana := c.Params("id_bencana")
 
 	var bencana domain.Bencana
 	if err := c.BodyParser(&bencana); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	updated, err := h.service.Update(c.Context(), id, bencana)
+	updated, err := h.service.Update(c.Context(), idBencana, bencana)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.Status(http.StatusCreated).JSON(updated)
+}
+
+func (h *bencanaHandler) DeleteById(c *fiber.Ctx) error {
+	idBencana := c.Params("id_bencana")
+
+	err := h.service.Delete(c.Context(), idBencana)
+
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.SendStatus(http.StatusNoContent)
 }
