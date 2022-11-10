@@ -39,16 +39,21 @@ func Run() {
 	bencana.Post("", bencanaHandler.Create)
 	bencana.Get("/:id_bencana", bencanaHandler.GetById)
 	bencana.Put("/:id_bencana", bencanaHandler.UpdateById)
+	bencana.Delete("/:id_bencana", bencanaHandler.DeleteById)
 
 	posko := app.Group("/bencana/:id_bencana/posko")
 	posko.Get("", poskoHandler.GetAll)
 	posko.Post("", poskoHandler.Create)
 	posko.Get("/:id_posko", poskoHandler.GetById)
+	posko.Put("/:id_posko", poskoHandler.UpdateById)
+	posko.Delete("/:id_posko", poskoHandler.DeleteById)
 	posko.Post("/:id_posko", korbanHandler.Create)
 
 	korban := app.Group("/bencana/:id_bencana/korban")
 	korban.Get("", korbanHandler.GetAll)
 	korban.Get("/:id_korban", korbanHandler.GetById)
+	korban.Put("/:id_korban", korbanHandler.UpdateById)
+	korban.Delete("/:id_korban", korbanHandler.DeleteById)
 
 	log.Fatal(app.Listen(port))
 
