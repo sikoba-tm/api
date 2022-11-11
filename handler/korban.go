@@ -76,12 +76,31 @@ func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	created, err := h.service.Update(c.Context(), idKorban, korban)
+	foto, _ := c.FormFile("foto")
+	if foto != nil {
+		// Notes: Implement UUID to Korban then find Blob by UUID first
+		f, _ := foto.Open()
+
+		objectPath := "korban/"
+		uuid := utils.GenerateUUID()
+		objectName := korban.Nama + "_" + uuid
+
+		err := h.gcs.UploadFile(context.Background(), objectPath, objectName, f)
+		if err != nil {
+			return err
+		}
+
+		PUBLIC_URL := "https://storage.googleapis.com/sikoba-dev/"
+		fileURL := PUBLIC_URL + objectPath + objectName
+		korban.Foto = fileURL
+	}
+
+	updated, err := h.service.Update(c.Context(), idKorban, korban)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(http.StatusCreated).JSON(created)
+	return c.Status(http.StatusAccepted).JSON(updated)
 }
 
 func (h *korbanHandler) DeleteById(c *fiber.Ctx) error {
