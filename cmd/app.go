@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"cloud.google.com/go/storage"
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/sikoba-tm/api/core/service"
@@ -22,6 +24,13 @@ func Run() {
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
 
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Printf("storage.NewClient: %v\n", err)
+	}
+	defer client.Close()
+
 	bencanaRepository := repository.NewBencanaRepository(db)
 	bencanaService := service.NewBencanaService(bencanaRepository)
 	bencanaHandler := handler.NewBencanaHandler(bencanaService)
@@ -30,9 +39,11 @@ func Run() {
 	poskoService := service.NewPoskoService(poskoRepository)
 	poskoHandler := handler.NewPoskoHandler(poskoService)
 
+	cloudStorageService := service.NewGoogleCloudStorage(client)
+
 	korbanRepository := repository.NewKorbanRepository(db)
 	korbanService := service.NewKorbanService(korbanRepository, poskoRepository)
-	korbanHandler := handler.NewKorbanHandler(korbanService)
+	korbanHandler := handler.NewKorbanHandler(korbanService, cloudStorageService)
 
 	bencana := app.Group("/bencana")
 	bencana.Get("", bencanaHandler.GetAll)
