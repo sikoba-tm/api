@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/sikoba-tm/api/core/domain"
 	"gorm.io/gorm"
 )
@@ -10,10 +11,10 @@ import (
 type KorbanRepository interface {
 	FindAllByPosko(ctx context.Context, idPosko string) []domain.Korban
 	//FindByKondisi(ctx context.Context, kondisi string) []domain.Korban
-	FindById(ctx context.Context, idKorban string) (*domain.Korban, error)
+	FindById(ctx context.Context, idKorban uuid.UUID) (*domain.Korban, error)
 	Create(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
 	Update(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
-	Delete(ctx context.Context, idKorban string) error
+	Delete(ctx context.Context, idKorban uuid.UUID) error
 }
 
 type korbanRepository struct {
@@ -32,7 +33,7 @@ func (r *korbanRepository) FindAllByPosko(ctx context.Context, idPosko string) [
 	return korbanSlice
 }
 
-func (r *korbanRepository) FindById(ctx context.Context, idKorban string) (*domain.Korban, error) {
+func (r *korbanRepository) FindById(ctx context.Context, idKorban uuid.UUID) (*domain.Korban, error) {
 	var korban domain.Korban
 
 	result := r.db.WithContext(ctx).Joins("Posko").Find(&korban, idKorban)
@@ -68,7 +69,7 @@ func (r *korbanRepository) Update(ctx context.Context, korban domain.Korban) (*d
 	return &korban, err
 }
 
-func (r *korbanRepository) Delete(ctx context.Context, idKorban string) error {
+func (r *korbanRepository) Delete(ctx context.Context, idKorban uuid.UUID) error {
 	err := r.db.WithContext(ctx).Delete(domain.Korban{}, idKorban).Error
 	if err != nil {
 		return fmt.Errorf("%v", "Cannot delete (violates Foreign Key constraint)")

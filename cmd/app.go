@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/sikoba-tm/api/core/service"
+	"github.com/sikoba-tm/api/core/service/external"
 	"github.com/sikoba-tm/api/handler"
 	"github.com/sikoba-tm/api/repository"
 	"log"
@@ -31,6 +32,10 @@ func Run() {
 	}
 	defer client.Close()
 
+	//mySess := session.Must(session.NewSession())
+	//rkg := rekognition.New(mySess, aws.NewConfig().WithRegion("ap-southeast-1"))
+	//rekognitionSvc := external.NewRekognitionClient(rkg)
+
 	bencanaRepository := repository.NewBencanaRepository(db)
 	bencanaService := service.NewBencanaService(bencanaRepository)
 	bencanaHandler := handler.NewBencanaHandler(bencanaService)
@@ -39,7 +44,7 @@ func Run() {
 	poskoService := service.NewPoskoService(poskoRepository)
 	poskoHandler := handler.NewPoskoHandler(poskoService)
 
-	cloudStorageService := service.NewGoogleCloudStorage(client)
+	cloudStorageService := external.NewGoogleCloudStorage(client)
 
 	korbanRepository := repository.NewKorbanRepository(db)
 	korbanService := service.NewKorbanService(korbanRepository, poskoRepository)

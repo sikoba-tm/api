@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 const (
 	KONDISI_SEHAT      = "Sehat"
@@ -15,15 +18,15 @@ const (
 )
 
 type Korban struct {
-	ID             uint `gorm:"primaryKey"`
+	ID             uuid.UUID `gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	Foto           string    `json:"foto"`
-	RentangUsia    string    `json:"rentang_usia"`
+	RentangUsia    string    `json:"rentang_usia" form:"rentang_usia"`
 	Nama           string    `json:"nama"`
-	TempatLahir    string    `json:"tempat_lahir"`
-	TanggalLahir   time.Time `json:"tangal_lahir"`
-	NamaIbuKandung string    `json:"nama_ibu_kandung"`
+	TempatLahir    string    `json:"tempat_lahir" form:"tempat_lahir"`
+	TanggalLahir   time.Time `json:"tanggal_lahir" form:"tanggal_lahir"`
+	NamaIbuKandung string    `json:"nama_ibu_kandung" form:"nama_ibu_kandung"`
 	Kondisi        string    `json:"kondisi"`
 	PoskoID        uint      `json:"-"`
 	Posko          Posko

@@ -1,4 +1,4 @@
-package service
+package external
 
 import (
 	"cloud.google.com/go/storage"
@@ -12,6 +12,7 @@ import (
 
 type CloudStorageService interface {
 	UploadFile(ctx context.Context, objectPath string, objectName string, file multipart.File) error
+	DownloadFile(ctx context.Context, objectPath string, objectName string) ([]byte, error)
 }
 type googleCloudStorage struct {
 	cl *storage.Client
@@ -36,4 +37,24 @@ func (s *googleCloudStorage) UploadFile(ctx context.Context, objectPath string, 
 	}
 
 	return nil
+}
+
+func (s *googleCloudStorage) DownloadFile(ctx context.Context, objectPath string, objectName string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+
+	// Download an object with storage.Reader.
+	rc, err := s.cl.Bucket(os.Getenv("GCS_BUCKET")).Object(objectPath + objectName).NewReader(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Object(%q).NewReader: %v", objectPath+objectName, err)
+	}
+	defer rc.Close()
+
+	data, err := io.ReadAll(rc)
+	if err != nil {
+		return nil, fmt.Errorf("io.ReadAll: %v", err)
+	}
+
+	return data, nil
+
 }

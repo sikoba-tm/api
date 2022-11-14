@@ -5,16 +5,17 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/sikoba-tm/api/core/domain"
 	"github.com/sikoba-tm/api/core/service"
+	"github.com/sikoba-tm/api/core/service/external"
 	"github.com/sikoba-tm/api/utils"
 	"net/http"
 )
 
 type korbanHandler struct {
 	service service.KorbanService
-	gcs     service.CloudStorageService
+	gcs     external.CloudStorageService
 }
 
-func NewKorbanHandler(service service.KorbanService, gcs service.CloudStorageService) *korbanHandler {
+func NewKorbanHandler(service service.KorbanService, gcs external.CloudStorageService) *korbanHandler {
 	return &korbanHandler{service: service, gcs: gcs}
 }
 
@@ -26,7 +27,13 @@ func (h *korbanHandler) GetAll(c *fiber.Ctx) error {
 }
 
 func (h *korbanHandler) GetById(c *fiber.Ctx) error {
-	idKorban := c.Params("id_korban")
+	paramsIdKorban := c.Params("id_korban")
+
+	idKorban, err := utils.ParseUUIDFromString(paramsIdKorban)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(IdNotValid)
+	}
+
 	result, err := h.service.FindById(c.Context(), idKorban)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(ObjectNotFound)
@@ -36,10 +43,17 @@ func (h *korbanHandler) GetById(c *fiber.Ctx) error {
 }
 
 func (h *korbanHandler) Create(c *fiber.Ctx) error {
+	ctx := context.Background()
 	idBencana := c.Params("id_bencana")
 	idPosko := c.Params("id_posko")
+
 	var korban domain.Korban
 	if err := c.BodyParser(&korban); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	created, err := h.service.Create(ctx, idBencana, idPosko, korban)
+	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -48,29 +62,36 @@ func (h *korbanHandler) Create(c *fiber.Ctx) error {
 		f, _ := foto.Open()
 
 		objectPath := "korban/"
-		uuid := utils.GenerateUUID()
-		objectName := korban.Nama + "_" + uuid
+		objectName := created.ID.String()
 
-		err := h.gcs.UploadFile(context.Background(), objectPath, objectName, f)
+		err := h.gcs.UploadFile(ctx, objectPath, objectName, f)
 		if err != nil {
 			return err
 		}
 
 		PUBLIC_URL := "https://storage.googleapis.com/sikoba-dev/"
 		fileURL := PUBLIC_URL + objectPath + objectName
-		korban.Foto = fileURL
-	}
-
-	created, err := h.service.Create(c.Context(), idBencana, idPosko, korban)
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		created.Foto = fileURL
+		//	Update with foto
+		//UpdateFoto(ctx, created)
+		created, err = h.service.Update(ctx, created.ID, *created)
+		if err != nil {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
 	}
 
 	return c.Status(http.StatusCreated).JSON(created)
 }
 
 func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
-	idKorban := c.Params("id_korban")
+	ctx := context.Background()
+	paramsIdKorban := c.Params("id_korban")
+
+	idKorban, err := utils.ParseUUIDFromString(paramsIdKorban)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(IdNotValid)
+	}
+
 	var korban domain.Korban
 	if err := c.BodyParser(&korban); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -78,14 +99,12 @@ func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
 
 	foto, _ := c.FormFile("foto")
 	if foto != nil {
-		// Notes: Implement UUID to Korban then find Blob by UUID first
 		f, _ := foto.Open()
 
 		objectPath := "korban/"
-		uuid := utils.GenerateUUID()
-		objectName := korban.Nama + "_" + uuid
+		objectName := paramsIdKorban
 
-		err := h.gcs.UploadFile(context.Background(), objectPath, objectName, f)
+		err := h.gcs.UploadFile(ctx, objectPath, objectName, f)
 		if err != nil {
 			return err
 		}
@@ -104,9 +123,14 @@ func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
 }
 
 func (h *korbanHandler) DeleteById(c *fiber.Ctx) error {
-	idKorban := c.Params("id_korban")
+	paramsIdKorban := c.Params("id_korban")
 
-	err := h.service.Delete(c.Context(), idKorban)
+	idKorban, err := utils.ParseUUIDFromString(paramsIdKorban)
+	if err != nil {
+		return c.Status(http.StatusNotFound).JSON(IdNotValid)
+	}
+
+	err = h.service.Delete(c.Context(), idKorban)
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
