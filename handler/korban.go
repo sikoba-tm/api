@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/sikoba-tm/api/core/domain"
 	"github.com/sikoba-tm/api/core/service"
 	"github.com/sikoba-tm/api/core/service/external"
 	"github.com/sikoba-tm/api/utils"
+	"io"
 	"net/http"
 )
 
@@ -60,6 +62,7 @@ func (h *korbanHandler) Create(c *fiber.Ctx) error {
 	foto, _ := c.FormFile("foto")
 	if foto != nil {
 		f, _ := foto.Open()
+		defer f.Close()
 
 		objectPath := "korban/"
 		objectName := created.ID.String()
@@ -100,6 +103,7 @@ func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
 	foto, _ := c.FormFile("foto")
 	if foto != nil {
 		f, _ := foto.Open()
+		defer f.Close()
 
 		objectPath := "korban/"
 		objectName := paramsIdKorban
@@ -137,4 +141,28 @@ func (h *korbanHandler) DeleteById(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(http.StatusNoContent)
+}
+
+func (h *korbanHandler) Search(c *fiber.Ctx) error {
+	idBencana := c.Params("id_bencana")
+	reference, _ := c.FormFile("foto")
+	if reference == nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "image can't be empty"})
+	}
+	f, _ := reference.Open()
+	defer f.Close()
+
+	buf := bytes.NewBuffer(nil)
+	_, err := io.Copy(buf, f)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	korbans, err := h.service.SearchByFoto(context.Background(), idBencana, buf.Bytes())
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	if len(korbans) == 0 {
+		return c.Status(http.StatusNotFound).JSON(korbans)
+	}
+	return c.Status(http.StatusOK).JSON(korbans)
 }

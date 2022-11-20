@@ -3,6 +3,9 @@ package cmd
 import (
 	"cloud.google.com/go/storage"
 	"context"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/rekognition"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/sikoba-tm/api/core/service"
@@ -32,9 +35,9 @@ func Run() {
 	}
 	defer client.Close()
 
-	//mySess := session.Must(session.NewSession())
-	//rkg := rekognition.New(mySess, aws.NewConfig().WithRegion("ap-southeast-1"))
-	//rekognitionSvc := external.NewRekognitionClient(rkg)
+	mySess := session.Must(session.NewSession())
+	rkg := rekognition.New(mySess, aws.NewConfig().WithRegion("ap-southeast-1"))
+	rekognitionSvc := external.NewRekognitionClient(rkg)
 
 	bencanaRepository := repository.NewBencanaRepository(db)
 	bencanaService := service.NewBencanaService(bencanaRepository)
@@ -47,7 +50,7 @@ func Run() {
 	cloudStorageService := external.NewGoogleCloudStorage(client)
 
 	korbanRepository := repository.NewKorbanRepository(db)
-	korbanService := service.NewKorbanService(korbanRepository, poskoRepository)
+	korbanService := service.NewKorbanService(korbanRepository, poskoRepository, cloudStorageService, rekognitionSvc)
 	korbanHandler := handler.NewKorbanHandler(korbanService, cloudStorageService)
 
 	bencana := app.Group("/bencana")
@@ -70,6 +73,7 @@ func Run() {
 	korban.Get("/:id_korban", korbanHandler.GetById)
 	korban.Put("/:id_korban", korbanHandler.UpdateById)
 	korban.Delete("/:id_korban", korbanHandler.DeleteById)
+	korban.Post("/search", korbanHandler.Search)
 
 	log.Fatal(app.Listen(port))
 

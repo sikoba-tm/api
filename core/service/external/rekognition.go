@@ -7,7 +7,7 @@ import (
 )
 
 type RekognitionService interface {
-	CompareImages(ctx context.Context, reference []byte, comparison []byte) (*rekognition.CompareFacesOutput, error)
+	CompareImages(ctx context.Context, reference []byte, comparison []byte, THRESHOLD float64) (*rekognition.CompareFacesOutput, error)
 }
 type rekognitionService struct {
 	cl *rekognition.Rekognition
@@ -17,8 +17,7 @@ func NewRekognitionClient(cl *rekognition.Rekognition) *rekognitionService {
 	return &rekognitionService{cl: cl}
 }
 
-func (s *rekognitionService) CompareImages(ctx context.Context, reference []byte, comparison []byte) (*rekognition.CompareFacesOutput, error) {
-	const THRESHOLD = 80.00000
+func (s *rekognitionService) CompareImages(ctx context.Context, reference []byte, comparison []byte, THRESHOLD float64) (*rekognition.CompareFacesOutput, error) {
 	imageInput := &rekognition.CompareFacesInput{
 		SimilarityThreshold: aws.Float64(THRESHOLD),
 		SourceImage: &rekognition.Image{

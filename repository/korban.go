@@ -15,6 +15,7 @@ type KorbanRepository interface {
 	Create(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
 	Update(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
 	Delete(ctx context.Context, idKorban uuid.UUID) error
+	FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID) []domain.Korban
 }
 
 type korbanRepository struct {
@@ -76,4 +77,11 @@ func (r *korbanRepository) Delete(ctx context.Context, idKorban uuid.UUID) error
 	}
 
 	return err
+}
+
+func (r *korbanRepository) FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID) []domain.Korban {
+	var korbanFound []domain.Korban
+	r.db.WithContext(ctx).Find(&korbanFound, uuidSlice)
+
+	return korbanFound
 }
