@@ -81,7 +81,7 @@ func (r *korbanRepository) Delete(ctx context.Context, idKorban uuid.UUID) error
 
 func (r *korbanRepository) FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID) []domain.Korban {
 	var korbanFound []domain.Korban
-	r.db.WithContext(ctx).Find(&korbanFound, uuidSlice)
+	r.db.WithContext(ctx).Order("nama asc").Find(&korbanFound, uuidSlice)
 
 	return korbanFound
 }

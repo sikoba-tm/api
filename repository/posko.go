@@ -27,7 +27,7 @@ func NewPoskoRepository(db *gorm.DB) *poskoRepository {
 func (r *poskoRepository) FindAll(ctx context.Context, idBencana string) []domain.Posko {
 	var poskoSlice []domain.Posko
 
-	r.db.WithContext(ctx).Where("bencana_id = ?", idBencana).Find(&poskoSlice)
+	r.db.WithContext(ctx).Where("bencana_id = ?", idBencana).Order("nama asc").Find(&poskoSlice)
 
 	return poskoSlice
 }
