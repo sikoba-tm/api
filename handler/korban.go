@@ -22,13 +22,15 @@ func NewKorbanHandler(service service.KorbanService, gcs external.CloudStorageSe
 }
 
 func (h *korbanHandler) GetAll(c *fiber.Ctx) error {
+	ctx := context.Background()
 	idBencana := c.Params("id_bencana")
-	result := h.service.FindAll(c.Context(), idBencana)
+	result := h.service.FindAll(ctx, idBencana)
 
 	return c.Status(http.StatusOK).JSON(result)
 }
 
 func (h *korbanHandler) GetById(c *fiber.Ctx) error {
+	ctx := context.Background()
 	paramsIdKorban := c.Params("id_korban")
 
 	idKorban, err := utils.ParseUUIDFromString(paramsIdKorban)
@@ -36,7 +38,7 @@ func (h *korbanHandler) GetById(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).JSON(IdNotValid)
 	}
 
-	result, err := h.service.FindById(c.Context(), idKorban)
+	result, err := h.service.FindById(ctx, idKorban)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(ObjectNotFound)
 	}
@@ -116,9 +118,16 @@ func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
 		PUBLIC_URL := "https://storage.googleapis.com/sikoba-dev/"
 		fileURL := PUBLIC_URL + objectPath + objectName
 		korban.Foto = fileURL
+	} else {
+		// Not replacing with new image
+		fotoURL := c.FormValue("foto_url")
+		if fotoURL == "" {
+			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "foto can't be empty"})
+		}
+		korban.Foto = fotoURL
 	}
 
-	updated, err := h.service.Update(c.Context(), idKorban, korban)
+	updated, err := h.service.Update(ctx, idKorban, korban)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -127,6 +136,7 @@ func (h *korbanHandler) UpdateById(c *fiber.Ctx) error {
 }
 
 func (h *korbanHandler) DeleteById(c *fiber.Ctx) error {
+	ctx := context.Background()
 	paramsIdKorban := c.Params("id_korban")
 
 	idKorban, err := utils.ParseUUIDFromString(paramsIdKorban)
@@ -134,7 +144,7 @@ func (h *korbanHandler) DeleteById(c *fiber.Ctx) error {
 		return c.Status(http.StatusNotFound).JSON(IdNotValid)
 	}
 
-	err = h.service.Delete(c.Context(), idKorban)
+	err = h.service.Delete(ctx, idKorban)
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -144,11 +154,13 @@ func (h *korbanHandler) DeleteById(c *fiber.Ctx) error {
 }
 
 func (h *korbanHandler) Search(c *fiber.Ctx) error {
+	ctx := context.Background()
 	idBencana := c.Params("id_bencana")
 	reference, _ := c.FormFile("foto")
 	if reference == nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "image can't be empty"})
 	}
+	// Process image in bytes
 	f, _ := reference.Open()
 	defer f.Close()
 
@@ -157,7 +169,13 @@ func (h *korbanHandler) Search(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
-	korbans, err := h.service.SearchByFoto(context.Background(), idBencana, buf.Bytes())
+	filter := make(map[string]interface{})
+	namaFromForm := c.FormValue("nama")
+	if namaFromForm != "" {
+		filter["nama"] = namaFromForm
+	}
+
+	korbans, err := h.service.SearchByFoto(ctx, idBencana, buf.Bytes(), filter)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}

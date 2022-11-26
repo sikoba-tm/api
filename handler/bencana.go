@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,14 +18,16 @@ func NewBencanaHandler(service service.BencanaService) *bencanaHandler {
 }
 
 func (h *bencanaHandler) GetAll(c *fiber.Ctx) error {
-	result := h.service.FindAll(c.Context())
+	ctx := context.Background()
+	result := h.service.FindAll(ctx)
 
 	return c.Status(http.StatusOK).JSON(result)
 }
 
 func (h *bencanaHandler) GetById(c *fiber.Ctx) error {
+	ctx := context.Background()
 	idBencana := c.Params("id_bencana")
-	result, err := h.service.FindById(c.Context(), idBencana)
+	result, err := h.service.FindById(ctx, idBencana)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(ObjectNotFound)
 	}
@@ -33,12 +36,13 @@ func (h *bencanaHandler) GetById(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) Create(c *fiber.Ctx) error {
+	ctx := context.Background()
 	var bencana domain.Bencana
 	if err := c.BodyParser(&bencana); err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	created, err := h.service.Create(c.Context(), bencana)
+	created, err := h.service.Create(ctx, bencana)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -47,6 +51,7 @@ func (h *bencanaHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) UpdateById(c *fiber.Ctx) error {
+	ctx := context.Background()
 	idBencana := c.Params("id_bencana")
 
 	var bencana domain.Bencana
@@ -54,7 +59,7 @@ func (h *bencanaHandler) UpdateById(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	updated, err := h.service.Update(c.Context(), idBencana, bencana)
+	updated, err := h.service.Update(ctx, idBencana, bencana)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -63,9 +68,10 @@ func (h *bencanaHandler) UpdateById(c *fiber.Ctx) error {
 }
 
 func (h *bencanaHandler) DeleteById(c *fiber.Ctx) error {
+	ctx := context.Background()
 	idBencana := c.Params("id_bencana")
 
-	err := h.service.Delete(c.Context(), idBencana)
+	err := h.service.Delete(ctx, idBencana)
 
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})

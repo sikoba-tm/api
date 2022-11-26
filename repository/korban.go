@@ -10,12 +10,11 @@ import (
 
 type KorbanRepository interface {
 	FindAllByPosko(ctx context.Context, idPosko string) []domain.Korban
-	//FindByKondisi(ctx context.Context, kondisi string) []domain.Korban
 	FindById(ctx context.Context, idKorban uuid.UUID) (*domain.Korban, error)
 	Create(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
 	Update(ctx context.Context, korban domain.Korban) (*domain.Korban, error)
 	Delete(ctx context.Context, idKorban uuid.UUID) error
-	FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID) []domain.Korban
+	FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID, filter map[string]interface{}) []domain.Korban
 }
 
 type korbanRepository struct {
@@ -50,14 +49,6 @@ func (r *korbanRepository) FindById(ctx context.Context, idKorban uuid.UUID) (*d
 	return &korban, nil
 }
 
-//func (r *korbanRepository) FindByKondisi(ctx context.Context, kondisi string) []domain.Korban {
-//	var korbanSlice []domain.Korban
-//
-//	r.db.Where(ctx).Where(&domain.Korban{Kondisi: kondisi})
-//
-//	return korbanSlice
-//}
-
 func (r *korbanRepository) Create(ctx context.Context, korban domain.Korban) (*domain.Korban, error) {
 	err := r.db.WithContext(ctx).Create(&korban).Error
 
@@ -79,9 +70,9 @@ func (r *korbanRepository) Delete(ctx context.Context, idKorban uuid.UUID) error
 	return err
 }
 
-func (r *korbanRepository) FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID) []domain.Korban {
+func (r *korbanRepository) FindAllKorbanByIdBulk(ctx context.Context, uuidSlice []uuid.UUID, filter map[string]interface{}) []domain.Korban {
 	var korbanFound []domain.Korban
-	r.db.WithContext(ctx).Order("nama asc").Find(&korbanFound, uuidSlice)
+	r.db.WithContext(ctx).Where(filter).Order("nama asc").Find(&korbanFound, uuidSlice)
 
 	return korbanFound
 }

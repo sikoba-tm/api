@@ -14,7 +14,7 @@ type KorbanService interface {
 	Create(ctx context.Context, idBencana string, idPosko string, korban domain.Korban) (*domain.Korban, error)
 	Update(ctx context.Context, idKorban uuid.UUID, korban domain.Korban) (*domain.Korban, error)
 	Delete(ctx context.Context, idKorban uuid.UUID) error
-	SearchByFoto(ctx context.Context, idBencana string, reference []byte) ([]domain.Korban, error)
+	SearchByFoto(ctx context.Context, idBencana string, reference []byte, condition map[string]interface{}) ([]domain.Korban, error)
 }
 
 type korbanService struct {
@@ -87,7 +87,7 @@ func (s *korbanService) Delete(ctx context.Context, idKorban uuid.UUID) error {
 	return err
 }
 
-func (s *korbanService) SearchByFoto(ctx context.Context, idBencana string, reference []byte) ([]domain.Korban, error) {
+func (s *korbanService) SearchByFoto(ctx context.Context, idBencana string, reference []byte, condition map[string]interface{}) ([]domain.Korban, error) {
 	const ThresholdLimit = 80.000
 	var searchResults = make([]domain.Korban, 0)
 	var idOfResults = make([]uuid.UUID, 0)
@@ -110,7 +110,7 @@ func (s *korbanService) SearchByFoto(ctx context.Context, idBencana string, refe
 	}
 
 	if len(idOfResults) != 0 {
-		searchResults = s.repoKorban.FindAllKorbanByIdBulk(ctx, idOfResults)
+		searchResults = s.repoKorban.FindAllKorbanByIdBulk(ctx, idOfResults, condition)
 	}
 
 	return searchResults, nil
