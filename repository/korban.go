@@ -28,7 +28,7 @@ func NewKorbanRepository(db *gorm.DB) *korbanRepository {
 func (r *korbanRepository) FindAllByPosko(ctx context.Context, idPosko string) []domain.Korban {
 	var korbanSlice []domain.Korban
 
-	r.db.WithContext(ctx).Where("posko_id = ?", idPosko).Find(&korbanSlice)
+	r.db.WithContext(ctx).Where("posko_id = ?", idPosko).Order("nama asc").Find(&korbanSlice)
 
 	return korbanSlice
 }

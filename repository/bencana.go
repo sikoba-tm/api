@@ -27,7 +27,7 @@ func NewBencanaRepository(db *gorm.DB) *bencanaRepository {
 func (r *bencanaRepository) FindAll(ctx context.Context) []domain.Bencana {
 	var bencanaSlice []domain.Bencana
 
-	r.db.WithContext(ctx).Find(&bencanaSlice)
+	r.db.WithContext(ctx).Order("tanggal_kejadian desc").Order("nama asc").Find(&bencanaSlice)
 
 	return bencanaSlice
 }
